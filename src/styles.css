@@ -1,0 +1,26 @@
+@import url('https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --Dark-Bg-2: #1E2024;
+  --White: #FFF;
+  --Foundation-Gray-gray-700: #6B727E;
+  --Foundation-Brand-brand-75: #E7DFFF;
+  --Foundation-Gray-gray-75: #EBEDF0;
+  --Foundation-Brand-brand-50: #F0EBFF;
+  --Foundation-Brand-brand-500: #6834FF;
+  --Foundation-Text-colors-Tertiary-text-color: #AFAFAF;
+}
+
+@layer base {
+  * {
+    @apply box-border;
+  }
+  
+  body {
+    @apply m-0 p-0 font-sans;
+  }
+}

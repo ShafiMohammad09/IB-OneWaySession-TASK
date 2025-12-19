@@ -1,0 +1,42 @@
+<div
+    class="h-screen flex flex-col bg-[#272B30] relative overflow-hidden font-sans selection:bg-[#6834FF] selection:text-white p-4">
+
+
+    @if (isSessionComplete) {
+    <div class="flex flex-col gap-6 ">
+        <app-navbar class="relative z-50 w-full"></app-navbar>
+        <div class="animate-fade-in">
+            <app-feedback></app-feedback>
+        </div>
+    </div>
+    }
+
+    @else {
+
+    <div class="flex-1 w-full  mx-auto flex flex-col min-h-0 relative">
+
+
+        <app-navbar class="relative z-50 w-full"></app-navbar>
+
+        <div class="w-full mt-6">
+            <app-question-section></app-question-section>
+        </div>
+
+
+        <div class="flex-1 min-h-0 flex flex-col items-center justify-center w-full my-6">
+            <app-video-recorder class="h-full w-full max-w-2xl"></app-video-recorder>
+        </div>
+
+
+        <app-control-bar class="relative z-50 mt-auto w-full"></app-control-bar>
+    </div>
+
+    }
+
+
+
+
+
+
+
+</div>

@@ -1,0 +1,51 @@
+<div
+    class="flex flex-col bg-[#1E1E1E]  items-center justify-center h-full min-h-[400px] animate-fade-in text-white p-6">
+    <div class="w-full max-w-2xl rounded-xl p-8 flex flex-col items-center gap-6">
+
+
+        <h2 class="text-2xl font-semibold">Session Complete</h2>
+        <p class="text-gray-400">How did your session feel today?</p>
+
+
+        <div class="flex gap-2 text-3xl">
+            @for (star of [1, 2, 3, 4, 5]; track star) {
+            <button (click)="setRating(star)" class="focus:outline-none transition-transform hover:scale-110">
+                <span [class.text-yellow-400]="star <= rating" [class.text-gray-600]="star > rating">
+                    {{ star <= rating ? '★' : '☆' }} </span>
+            </button>
+            }
+        </div>
+
+
+        <div class="flex flex-col items-center gap-3 w-full">
+            <p class="text-sm text-gray-400">How can we make your experience better?</p>
+            <div class="flex flex-wrap justify-center gap-2 max-w-[500px]">
+                @for (option of improvementOptions; track option) {
+                <button (click)="toggleImprovement(option)"
+                    class="px-3 py-1 rounded-full text-xs transition-all duration-200 border"
+                    [class.bg-[#FFE4D3]]="improvements.has(option)" [class.text-[#FF8534]]="improvements.has(option)"
+                    [class.border-[#FF8534]]="improvements.has(option)" [class.bg-[#374151]]="!improvements.has(option)"
+                    [class.text-gray-300]="!improvements.has(option)"
+                    [class.border-transparent]="!improvements.has(option)"
+                    [class.hover:bg-[#4B5563]]="!improvements.has(option)">
+                    {{ option }}
+                </button>
+                }
+            </div>
+        </div>
+
+
+        <div class="w-full flex flex-col gap-2">
+            <label class="text-xs text-gray-400">Suggestions to improve</label>
+            <textarea
+                class="w-full h-24 bg-[#1F2937] rounded-lg border border-gray-700 p-3 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-[#6834FF] transition-colors resize-none"
+                placeholder="Your feedback is much appreciated..."></textarea>
+        </div>
+
+        <button
+            class="px-8 py-2.5 bg-[#6834FF] hover:bg-[#5829D6] rounded-md text-white font-medium transition-colors shadow-lg shadow-purple-600/20">
+            Submit & Close
+        </button>
+
+    </div>
+</div>
