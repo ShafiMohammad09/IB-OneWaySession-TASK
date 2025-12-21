@@ -1,4 +1,4 @@
-<div class=" bg-[#272B30] p-5 flex flex-col items-center gap-5">
+<div class=" bg-[#272B30] p-3 flex flex-col items-center gap-5">
 
     <div class="w-full">
 
@@ -74,7 +74,9 @@
                         <button (click)="stopRecordingAndCheck()"
                             class="px-6 py-2.5 bg-red-100 text-red-500 text-sm font-semibold rounded-full border-8 border-[rgba(11,19,49,0.6)] flex items-center gap-2">
                             Stop
-                            <div class="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse"></div>
+                            <div class=" border-2 border-red-500 rounded-full w-4 h-4 flex items-center justify-center">
+                                <div class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></div>
+                            </div>
                         </button>
                         }
                         @else if (testState() === 'completed') {
@@ -91,7 +93,7 @@
 
                 <!-- Settings -->
                 <div
-                    class="flex flex-col gap-3 p-3 sm:p-4 items-start content-start self-stretch flex-wrap rounded-b-md bg-dark-card">
+                    class="flex flex-col gap-2 p-2 sm:p-4 items-start content-start self-stretch flex-wrap rounded-b-md bg-dark-card">
 
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full">
 
@@ -167,10 +169,10 @@
 
                         <div class="space-y-1.5">
                             <label class="text-xs text-gray-400 font-medium ml-1">Enhancements</label>
-                            <div class="flex gap-2 h-[46px]">
+                            <div class="flex gap-1.5 h-[46px]">
                                 <button (click)="blurEnabled.set(!blurEnabled())" [class.bg-[#2A2D32]]="!blurEnabled()"
                                     [class.bg-[#3D4045]]="blurEnabled()"
-                                    class="flex-1 flex items-center justify-center gap-2 px-3 rounded-lg text-xs font-medium transition-all border border-white/5 hover:bg-[#32363C] text-gray-300 h-full">
+                                    class="flex-1 flex items-center justify-center gap-2 px-3 rounded-lg text-sm font-medium transition-all border border-white/5 hover:bg-[#32363C] text-gray-300 h-full">
                                     <img src="blur.svg" alt="">
                                     Background Blur
                                 </button>
@@ -178,7 +180,7 @@
                                 <button (click)="noiseCancellationEnabled.set(!noiseCancellationEnabled())"
                                     [class.bg-[#2A2D32]]="!noiseCancellationEnabled()"
                                     [class.bg-[#3D4045]]="noiseCancellationEnabled()"
-                                    class="flex-1 flex items-center justify-center gap-2 px-3 rounded-lg text-xs font-medium transition-all border border-white/5 hover:bg-[#32363C] text-gray-300 h-full">
+                                    class="flex-1 flex items-center justify-center gap-2 px-3 rounded-lg text-sm font-medium transition-all border border-white/5 hover:bg-[#32363C] text-gray-300 h-full">
                                     <img src="noice.svg" alt="">
                                     Noise Cancellation
                                 </button>
@@ -191,8 +193,7 @@
 
 
                     @if(testState() === 'idle') {
-                    <div
-                        class="flex w-full p-2 flex-col items-start gap-2.5 rounded-md border border-blue-500 bg-white">
+                    <div class="flex w-full p-2 flex-col items-start gap-2 rounded-md border border-blue-500 bg-white">
                         <div class="flex items-start gap-2 self-stretch">
                             <img src="information-circle.svg" alt="">
                             <p class="flex-1 text-black font-normal text-xs leading-5">Please use the built-in noise
@@ -212,9 +213,9 @@
         </div>
 
         <!-- Right -->
-        <div class="flex-1 min-w-[300px] flex bg-[#1E1E1E]">
+        <div class="flex-1 min-w-[300px] flex bg-[#1E1E1E] rounded-md">
 
-            <div class="flex w-full p-4 flex-col items-start gap-3 rounded-md bg-dark-card h-full justify-between">
+            <div class="flex w-full p-3 flex-col items-start gap-3 rounded-md bg-dark-card h-full justify-between">
 
                 <div class="flex items-center gap-4 self-stretch">
                     <h2 class="flex-1 text-white font-semibold text-xl leading-7">Quick check</h2>
