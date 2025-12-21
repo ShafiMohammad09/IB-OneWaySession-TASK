@@ -1,0 +1,253 @@
+<div
+    class="flex flex-wrap sm:flex-nowrap items-center justify-between sm:justify-start py-4 px-3 gap-3 sm:gap-4 bg-[#1E2024] border-t border-white/10 relative z-20">
+    <div class="flex items-center gap-3">
+
+        <div class="relative group">
+            <div class="w-16 h-10 rounded-full border border-[#6B727E] flex items-center bg-[#272B30] relative z-0">
+                <div class="w-10 h-10 rounded-full flex items-center justify-center relative">
+                    <div class="w-12 h-9 rounded-full bg-black/40 flex items-center justify-center shadow-sm">
+                        <img src="Mic.svg" alt="Mic" class="w-10 h-10 ">
+                    </div>
+                </div>
+                <button (click)="toggleAudioSettings()" [disabled]="state === 'recording'"
+                    [class.opacity-50]="state === 'recording'" [class.cursor-not-allowed]="state === 'recording'"
+                    class="absolute right-1 top-1/2 -translate-y-1/2 w-4 h-4 flex items-center justify-center cursor-pointer hover:bg-white/10 rounded-full transition-colors z-10">
+                    <img src="more-vertical-circle-01.svg" alt="More Options" class="w-4 h-4">
+                </button>
+            </div>
+
+
+            @if (showAudioSettings()) {
+            <div
+                class="absolute bottom-[130%] left-0 z-50 w-[280px] bg-[#1E2024] border border-gray-700 rounded-xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
+
+                <div class="flex items-center justify-between p-3 border-b border-gray-700">
+                    <h3 class="text-white font-medium text-sm">Audio settings</h3>
+                    <button (click)="showAudioSettings.set(false)"
+                        class="text-gray-400 hover:text-white transition-colors">
+                        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M18 6L6 18M6 6l12 12" stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>
+                    </button>
+                </div>
+
+                <div class="p-4 space-y-4">
+
+                    <div class="space-y-1.5">
+                        <label class="text-gray-300 text-xs">Select audio device</label>
+                        <div class="relative">
+                            <select [value]="selectedAudioDevice()"
+                                (change)="selectedAudioDevice.set($any($event.target).value)"
+                                class="w-full bg-[#272B30] text-white border border-gray-600 rounded-lg px-2 py-2 text-xs focus:outline-none focus:border-[#6834FF] appearance-none cursor-pointer">
+                                @for (device of audioDevices(); track device.deviceId) {
+                                <option [value]="device.deviceId">{{ device.label || 'Microphone ' + ($index + 1) }}
+                                </option>
+                                }
+                                @if (audioDevices().length === 0) {
+                                <option value="">Default Microphone</option>
+                                }
+                            </select>
+                            <div class="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M19 9l-7 7-7-7">
+                                    </path>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <div class="space-y-1.5">
+                        <label class="text-gray-300 text-xs">Noise cancellation</label>
+                        <button (click)="noiseCancellation.set(!noiseCancellation())"
+                            class="flex items-center gap-2 group">
+                            <div class="w-9 h-5 rounded-full transition-colors relative"
+                                [class.bg-[#6834FF]]="noiseCancellation()" [class.bg-gray-500]="!noiseCancellation()">
+                                <div class="absolute top-0.5 left-0.5 bg-white w-4 h-4 rounded-full transition-transform"
+                                    [class.translate-x-4]="noiseCancellation()"></div>
+                            </div>
+                            <span class="text-xs font-medium transition-colors" [class.text-white]="noiseCancellation()"
+                                [class.text-gray-400]="!noiseCancellation()">
+                                {{ noiseCancellation() ? 'On' : 'Off' }}
+                            </span>
+                        </button>
+                    </div>
+
+
+                    <div class="bg-blue-500/10 border border-blue-500/20 rounded-md p-2 flex items-start gap-2">
+                        <svg class="w-4 h-4 text-blue-400 flex-shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <p class="text-blue-100/90 text-[10px] leading-tight">
+                            Use built-in cancellation on Mac/iOS.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            }
+
+
+            <div class="hidden group-hover:block absolute bottom-full left-1/2 -translate-x-1/2 mb-2 z-50">
+                <div
+                    class="bg-[#F0EBFF] text-[#6834FF] text-xs font-medium px-3 py-1.5 rounded-md shadow-lg whitespace-nowrap relative">
+                    Mic cannot be muted
+                    <div
+                        class="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[6px] border-t-[#F0EBFF]">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="relative group">
+            <div class="w-16 h-10 rounded-full border border-[#6B727E] flex items-center bg-[#272B30]">
+                <div class="w-10 h-10 rounded-full flex items-center justify-center relative cursor-not-allowed">
+                    <div class="w-12 h-9 rounded-full bg-black/40 flex items-center justify-center shadow-sm">
+                        <img src="Camera.svg" alt="Camera" class="w-10 h-10">
+                    </div>
+                </div>
+                <button (click)="toggleVideoSettings()" [disabled]="state === 'recording'"
+                    [class.opacity-50]="state === 'recording'" [class.cursor-not-allowed]="state === 'recording'"
+                    class="absolute right-1 top-1/2 -translate-y-1/2 w-4 h-4 flex items-center justify-center cursor-pointer hover:bg-white/10 rounded-full transition-colors">
+                    <img src="more-vertical-circle-01.svg" alt="More Options" class="w-4 h-4">
+                </button>
+            </div>
+
+
+            @if (showVideoSettings()) {
+            <div
+                class="absolute bottom-[130%] left-0 z-50 w-[280px] bg-[#1E2024] border border-gray-700 rounded-xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
+
+                <div class="flex items-center justify-between p-3 border-b border-gray-700">
+                    <h3 class="text-white font-medium text-sm">Video settings</h3>
+                    <button (click)="showVideoSettings.set(false)"
+                        class="text-gray-400 hover:text-white transition-colors">
+                        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M18 6L6 18M6 6l12 12" stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>
+                    </button>
+                </div>
+
+                <div class="p-4 space-y-4">
+
+                    <div class="space-y-1.5">
+                        <label class="text-gray-300 text-xs">Select video device</label>
+                        <div class="relative">
+                            <select [value]="selectedVideoDevice()"
+                                (change)="selectedVideoDevice.set($any($event.target).value)"
+                                class="w-full bg-[#272B30] text-white border border-gray-600 rounded-lg px-2 py-2 text-xs focus:outline-none focus:border-[#6834FF] appearance-none cursor-pointer">
+                                @for (device of videoDevices(); track device.deviceId) {
+                                <option [value]="device.deviceId">{{ device.label || 'Camera ' + ($index + 1) }}
+                                </option>
+                                }
+                                @if (videoDevices().length === 0) {
+                                <option value="">Default Camera</option>
+                                }
+                            </select>
+                            <div class="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M19 9l-7 7-7-7">
+                                    </path>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <div class="space-y-1.5">
+                        <label class="text-gray-300 text-xs">Background blur</label>
+                        <button (click)="backgroundBlur.set(!backgroundBlur())" class="flex items-center gap-2 group">
+                            <div class="w-9 h-5 rounded-full transition-colors relative"
+                                [class.bg-[#6834FF]]="backgroundBlur()" [class.bg-gray-500]="!backgroundBlur()">
+                                <div class="absolute top-0.5 left-0.5 bg-white w-4 h-4 rounded-full transition-transform"
+                                    [class.translate-x-4]="backgroundBlur()"></div>
+                            </div>
+                            <span class="text-xs font-medium transition-colors" [class.text-white]="backgroundBlur()"
+                                [class.text-gray-400]="!backgroundBlur()">
+                                {{ backgroundBlur() ? 'On' : 'Off' }}
+                            </span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            }
+
+
+            <div class="hidden group-hover:block absolute bottom-full left-1/2 -translate-x-1/2 mb-2 z-50">
+                <div
+                    class="bg-[#F0EBFF] text-[#6834FF] text-xs font-medium px-3 py-1.5 rounded-md shadow-lg whitespace-nowrap relative">
+                    Video cannot be disabled
+                    <div
+                        class="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[6px] border-t-[#F0EBFF]">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="hidden sm:flex flex-1 justify-center items-center gap-4">
+        @switch (state) {
+        @case ('idle') {
+        <button (click)="interviewService.startRecording()"
+            class="px-5 py-2.5 rounded-md bg-[#F0EBFF] text-[#6834FF] text-sm font-medium hover:bg-[#E7DFFF] transition-colors shadow-lg shadow-purple-500/20">
+            Start Recording
+        </button>
+        }
+        @case ('recording') {
+        <button (click)="interviewService.stopRecording()"
+            class="px-5 py-2.5 rounded-md bg-[#FF4B4B]/10 text-[#FF4B4B] text-sm font-medium hover:bg-[#FF4B4B]/20 transition-colors flex items-center gap-2 border border-[#FF4B4B]/20">
+            <div class="w-2.5 h-2.5 rounded-full bg-[#FF4B4B] animate-pulse"></div>
+            {{ timer }} / 04:00
+        </button>
+        }
+        @case ('review') {
+        <div class="flex items-center gap-3">
+            <button (click)="interviewService.resetRecording()" [disabled]="interviewService.isMaxAttemptsReached()"
+                [class.opacity-50]="interviewService.isMaxAttemptsReached()"
+                [class.cursor-not-allowed]="interviewService.isMaxAttemptsReached()"
+                class="px-6 bg-brand-50 py-2.5 rounded-md border border-white/20 text-white text-sm font-medium hover:bg-white/5 transition-colors">
+                <span class="text-brand-500">Re-attempt</span>
+            </button>
+            <button (click)="interviewService.submitAnswer()"
+                class="px-6 py-2.5 rounded-md bg-[#6834FF] text-white text-sm font-medium hover:bg-[#5829D6] transition-colors shadow-lg shadow-purple-600/20">
+                Submit & Next
+            </button>
+        </div>
+        }
+        @case ('loading') {
+        <div class="flex flex-col items-center gap-2 w-full max-w-md">
+            <div class="flex items-center gap-2 text-[#9CA3AF] text-sm">
+                <svg class="animate-spin h-4 w-4 text-[#6834FF]" xmlns="http://www.w3.org/2000/svg" fill="none"
+                    viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4">
+                    </circle>
+                    <path class="opacity-75" fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                    </path>
+                </svg>
+                <span>{{ interviewService.loadingMessage() }}</span>
+            </div>
+            <div class="w-full bg-gray-700/50 rounded-full h-1.5 overflow-hidden">
+                <div class="bg-gradient-to-r from-[#6834FF] to-[#8A38F5] h-1.5 rounded-full transition-all duration-500 ease-out"
+                    [style.width.%]="interviewService.progress()">
+                </div>
+            </div>
+            <span class="text-xs text-[#6B727E] self-end">{{ interviewService.progress() }}%</span>
+        </div>
+        }
+        }
+    </div>
+
+
+    <div class="flex flex-col items-end gap-1 min-w-[100px]">
+        <span class="text-[#AFAFAF] text-xs sm:text-sm">Attempts</span>
+        <span class="text-white text-sm sm:text-base font-normal">
+            {{ interviewService.attempts() }}/{{ interviewService.MAX_ATTEMPTS }}
+        </span>
+    </div>
+</div>

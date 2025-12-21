@@ -1,0 +1,90 @@
+<div class="min-h-screen bg-[#272B30] flex flex-col font-sans selection:bg-[#6834FF] selection:text-white p-4 gap-4">
+
+    <app-navbar class="relative z-50"></app-navbar>
+
+
+    <div class="bg-[#1E2024] rounded-lg border border-white/5 p-6 animate-fade-in">
+        <h1 class="text-white text-lg font-medium mb-6">
+            Hi {{name}}, Welcome to your <span class="text-white">{{title}}</span>
+        </h1>
+
+        <div class="grid grid-cols-2 md:grid-cols-5 gap-6 md:gap-4 border-t border-white/10 pt-6">
+            <div class="flex flex-col gap-1.5">
+                <span class="text-xs text-gray-400 font-medium uppercase tracking-wide">Title</span>
+                <span class="text-sm text-gray-200 font-semibold">{{details.role}}</span>
+            </div>
+
+            <div class="flex flex-col gap-1.5">
+                <span class="text-xs text-gray-400 font-medium uppercase tracking-wide">Experience</span>
+                <span class="text-sm text-gray-200 font-semibold">{{details.experience}}</span>
+            </div>
+
+            <div class="flex flex-col gap-1.5">
+                <span class="text-xs text-gray-400 font-medium uppercase tracking-wide">Attempts per question</span>
+                <span class="text-sm text-gray-200 font-semibold">{{details.attempts}}</span>
+            </div>
+
+            <div class="flex flex-col gap-1.5">
+                <span class="text-xs text-gray-400 font-medium uppercase tracking-wide">Total question</span>
+                <span class="text-sm text-gray-200 font-semibold">{{details.totalQuestions}}</span>
+            </div>
+
+            <div class="flex flex-col gap-1.5">
+                <span class="text-xs text-gray-400 font-medium uppercase tracking-wide">Duration per question</span>
+                <span class="text-sm text-gray-200 font-semibold">{{details.duration}}</span>
+            </div>
+        </div>
+    </div>
+
+
+
+    <div class="flex-1 bg-[#23262B] rounded-lg border border-white/5 p-6 flex flex-col animate-fade-in delay-100">
+        <h2 class="text-lg font-medium text-white mb-4">Instructions</h2>
+
+        <ul class="space-y-2 text-sm text-gray-300 list-disc pl-4 marker:text-gray-500">
+            <li>Test your audio and video. Adjust the settings if necessary.</li>
+            <li>Sit in a well-lit area with your face clearly visible and no background noise.</li>
+            <li>Avoid having moving objects in the background.</li>
+            <li>Maintain a stable internet connection.</li>
+            <li>Ensure your device is charged or plugged in to avoid any interruptions.</li>
+            <li>Please remain in the meeting room for at least 10 minutes. This time is necessary to capture your
+                attendance, so stay even if the other person has not yet attended.</li>
+            <li>The whiteboard in the meeting room works both ways; any changes you make are visible to the other
+                person.</li>
+            <li>The code console is limited to your end. Please share your screen to show your code console to the
+                other person.</li>
+            <li>Keep an eye on the time, you will be prompted 2 minutes before the meeting ends.</li>
+        </ul>
+
+        <div class="flex-1"></div>
+
+
+        <div
+            class="mt-8 flex flex-col sm:flex-row items-center justify-between gap-4 pt-6 md:pt-12 border-t border-white/5">
+            <div class="flex items-center gap-3">
+                <div class="relative flex items-center">
+                    <input type="checkbox" [(ngModel)]="isAgreed" id="instructions-agree"
+                        class="peer h-5 w-5 cursor-pointer appearance-none rounded-md border border-gray-600 bg-[#2A2D32] checked:border-[#6834FF] checked:bg-[#6834FF] transition-all">
+                    <svg class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-3.5 h-3.5 pointer-events-none opacity-0 peer-checked:opacity-100 text-white transition-opacity"
+                        fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                    </svg>
+                </div>
+                <label for="instructions-agree" class="text-sm text-gray-300 cursor-pointer select-none">
+                    I have read and understood all instructions
+                </label>
+            </div>
+
+            <button (click)="handleNext()" [disabled]="!isAgreed"
+                class="px-8 py-2.5 bg-white text-black font-medium rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 transition-colors w-full sm:w-auto">
+                Next
+            </button>
+        </div>
+    </div>
+
+    <!-- <div class="flex-1 w-full max-w-5xl mx-auto p-4 sm:p-6 flex flex-col gap-6">
+
+    </div> -->
+
+
+</div>
