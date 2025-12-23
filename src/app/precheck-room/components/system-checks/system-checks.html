@@ -62,12 +62,12 @@
 
 
                     <div
-                        class="absolute bottom-4 md:bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-3 md:gap-4 z-20">
+                        class="absolute bottom-2 md:bottom-2 left-1/2 -translate-x-1/2 flex items-center gap-3 md:gap-4 z-20">
 
                         @if (testState() === 'idle') {
                         <button (click)="startRecording()"
                             class="bg-brand-50 px-6 py-2.5 text-brand-500 text-sm rounded-full border-8 border-[rgba(11,19,49,0.6)]">
-                            Start Test
+                            Test
                         </button>
                         }
                         @else if (testState() === 'running') {
@@ -93,17 +93,18 @@
 
                 <!-- Settings -->
                 <div
-                    class="flex flex-col gap-2 p-2 sm:p-4 items-start content-start self-stretch flex-wrap rounded-b-md bg-dark-card">
+                    class="flex flex-col gap-1.5 p-1 sm:p-3 items-start content-start self-stretch flex-wrap rounded-b-md bg-dark-card">
 
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full">
 
                         <div class="space-y-1.5">
                             <label class="text-xs text-gray-400 font-medium ml-1">Speakers</label>
                             <div class="relative">
-                                <select [ngModel]="selectedSpeaker()" (ngModelChange)="selectedSpeaker.set($event)"
+                                <select [ngModel]="selectedSpeaker()"
+                                    (ngModelChange)="onDeviceChange('speaker', $event)"
                                     class="w-full bg-[#272B30] text-sm text-gray-200 rounded-lg px-4 py-3 border border-white/5 focus:border-[#6834FF] focus:outline-none appearance-none cursor-pointer hover:bg-[#2A2D32] transition-colors">
-                                    <option *ngFor="let device of audioOutputDevices(); let i = index"
-                                        [value]="device.deviceId">
+                                    <option *ngFor="let device of audioOutputDevices();
+                                     let i = index" [value]="device.deviceId">
                                         {{ device.label || 'Speaker ' + (i + 1) }}
                                     </option>
                                     <option *ngIf="audioOutputDevices().length === 0" value="default">Default Speaker
@@ -123,7 +124,7 @@
                         <div class="space-y-1.5">
                             <label class="text-xs text-gray-400 font-medium ml-1">Microphone</label>
                             <div class="relative">
-                                <select [ngModel]="selectedMic()" (ngModelChange)="selectedMic.set($event)"
+                                <select [ngModel]="selectedMic()" (ngModelChange)="onDeviceChange('mic', $event)"
                                     class="w-full bg-[#272B30] text-sm text-gray-200 rounded-lg px-4 py-3 border border-white/5 focus:border-[#6834FF] focus:outline-none appearance-none cursor-pointer hover:bg-[#2A2D32] transition-colors">
                                     <option *ngFor="let device of audioInputDevices(); let i = index"
                                         [value]="device.deviceId">
@@ -147,7 +148,7 @@
                         <div class="space-y-1.5">
                             <label class="text-xs text-gray-400 font-medium ml-1">Camera</label>
                             <div class="relative">
-                                <select [ngModel]="selectedCamera()" (ngModelChange)="selectedCamera.set($event)"
+                                <select [ngModel]="selectedCamera()" (ngModelChange)="onDeviceChange('camera', $event)"
                                     class="w-full bg-[#272B30] text-sm text-gray-200 rounded-lg px-4 py-3 border border-white/5 focus:border-[#6834FF] focus:outline-none appearance-none cursor-pointer hover:bg-[#2A2D32] transition-colors">
                                     <option *ngFor="let device of videoInputDevices(); let i = index"
                                         [value]="device.deviceId">
@@ -353,22 +354,50 @@
 
                         <div class="flex gap-4 items-start">
                             <div class="mt-1">
+                                @if(micStatus() === 'success') {
                                 <img src="/signal-check.svg" alt="Success" class="w-5 h-5">
+                                } @else {
+                                <div
+                                    class="w-5 h-5 rounded-full border-2 border-red-500 flex items-center justify-center text-red-500">
+                                    <svg class="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                                        stroke-width="3">
+                                        <path d="M6 18L18 6M6 6l12 12" stroke-linecap="round" stroke-linejoin="round" />
+                                    </svg>
+                                </div>
+                                }
                             </div>
                             <div>
                                 <h3 class="text-white font-medium mb-1">Microphone</h3>
+                                @if(micStatus() === 'success') {
                                 <p class="text-sm text-gray-400">Mic is functioning properly. Your voice is clear.</p>
+                                } @else {
+                                <p class="text-sm text-red-500">Microphone check failed.</p>
+                                }
                             </div>
                         </div>
 
 
                         <div class="flex gap-4 items-start">
                             <div class="mt-1">
+                                @if(networkStatus() === 'success') {
                                 <img src="/network-check.svg" alt="Success" class="w-5 h-5">
+                                } @else {
+                                <div
+                                    class="w-5 h-5 rounded-full border-2 border-red-500 flex items-center justify-center text-red-500">
+                                    <svg class="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                                        stroke-width="3">
+                                        <path d="M6 18L18 6M6 6l12 12" stroke-linecap="round" stroke-linejoin="round" />
+                                    </svg>
+                                </div>
+                                }
                             </div>
                             <div>
                                 <h3 class="text-white font-medium mb-1">Network</h3>
+                                @if(networkStatus() === 'success') {
                                 <p class="text-sm text-gray-400">Network quality is good.</p>
+                                } @else {
+                                <p class="text-sm text-red-500">Network check failed.</p>
+                                }
                             </div>
                         </div>
                     </div>
@@ -378,7 +407,7 @@
 
                 <div class="flex flex-col gap-4 self-stretch">
 
-                    @if(testState() === 'completed') {
+                    @if(testState() === 'completed' && allChecksPassed()) {
                     <div class="flex items-center gap-3">
                         <input type="checkbox" id="acknowledge" [checked]="isAcknowledged()"
                             (change)="isAcknowledged.set(!isAcknowledged())"
@@ -391,8 +420,8 @@
 
 
                     <div class="flex flex-col justify-center items-end gap-2.5 self-stretch">
-                        <button (click)="joinMeeting()" [disabled]="testState() !== 'completed' || !isAcknowledged()"
-                            [class.opacity-40]="testState() !== 'completed' || !isAcknowledged()"
+                        <button (click)="joinMeeting()" [disabled]="!allChecksPassed() || !isAcknowledged()"
+                            [class.opacity-40]="!allChecksPassed() || !isAcknowledged()"
                             [class.cursor-not-allowed]="testState() !== 'completed' || !isAcknowledged()"
                             class="flex h-8 px-4 py-2.5 justify-center items-center gap-1 rounded-md bg-brand-50 transition-opacity">
                             <span class="text-brand-500 font-normal text-xs leading-5">Join</span>

@@ -41,4 +41,13 @@ testem.log
 .DS_Store
 Thumbs.db
 
+**/node_modules
+
+# Environment Variables
+.env
+**/.env
+
+
+# sensitive
+.env
 

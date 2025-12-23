@@ -31,10 +31,24 @@ export class VideoRecorderComponent implements AfterViewInit, OnDestroy {
                 this.resetToCamera();
             }
         });
+
+        effect(() => {
+            const camId = this.interviewService.selectedCameraId();
+            const micId = this.interviewService.selectedMicId();
+
+            // Only update stream if we are not recording/reviewing, or if we want to allow hot-swap (which might be tricky)
+            // But usually control bar disables changes during recording.
+            if (this.interviewService.recordingState() === 'idle') {
+                // Use untracked? No, we want to track camId/micId.
+                // We need to defer this to ensure it doesn't run too often? Signals handle that.
+                this.updateStream();
+            }
+        });
     }
 
     ngAfterViewInit() {
-        this.startCamera();
+        // Initial start
+        this.updateStream();
     }
 
     get timer() {
@@ -54,17 +68,30 @@ export class VideoRecorderComponent implements AfterViewInit, OnDestroy {
         }
     }
 
-    async startCamera() {
+    async updateStream() {
+        if (this.stream) {
+            this.stream.getTracks().forEach(t => t.stop());
+        }
+
+        const camId = this.interviewService.selectedCameraId();
+        const micId = this.interviewService.selectedMicId();
+
+        const videoConstraints = camId && camId !== 'default' ? { deviceId: { exact: camId } } : true;
+        const audioConstraints = micId && micId !== 'default' ? { deviceId: { exact: micId } } : true;
+
         try {
             this.stream = await navigator.mediaDevices.getUserMedia({
-                video: true,
-                audio: true
+                video: videoConstraints,
+                audio: audioConstraints
             });
-
             this.resetToCamera();
         } catch (error) {
-            console.error('Error accessing camera:', error);
+            console.error('Error updating stream:', error);
         }
+    }
+
+    async startCamera() {
+        await this.updateStream();
     }
 
     startRecording() {

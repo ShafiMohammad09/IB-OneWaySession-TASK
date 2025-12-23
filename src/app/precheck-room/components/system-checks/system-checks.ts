@@ -1,7 +1,9 @@
-import { Component, inject, signal, ViewChild, ElementRef, OnInit, OnDestroy } from '@angular/core';
+import { Component, inject, signal, ViewChild, ElementRef, OnInit, OnDestroy, computed } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { InterviewService } from '../../../services/interview.service';
+
 
 type CheckStatus = 'pending' | 'checking' | 'success' | 'failure';
 type TestState = 'idle' | 'running' | 'analyzing' | 'completed';
@@ -23,6 +25,12 @@ export class SystemChecks implements OnInit, OnDestroy {
   cameraStatus = signal<CheckStatus>('pending');
   micStatus = signal<CheckStatus>('pending');
   networkStatus = signal<CheckStatus>('pending');
+
+  allChecksPassed = computed(() =>
+    this.cameraStatus() === 'success' &&
+    this.micStatus() === 'success' &&
+    this.networkStatus() === 'success'
+  );
 
   isAcknowledged = signal(false);
 
@@ -94,6 +102,68 @@ export class SystemChecks implements OnInit, OnDestroy {
 
     } catch (err) {
       console.error('Error enumerating devices:', err);
+    }
+  }
+
+  async onDeviceChange(type: 'mic' | 'camera' | 'speaker', deviceId: string) {
+    if (type === 'mic') {
+      this.selectedMic.set(deviceId);
+      await this.updateStream();
+    } else if (type === 'camera') {
+      this.selectedCamera.set(deviceId);
+      await this.updateStream();
+    } else if (type === 'speaker') {
+      this.selectedSpeaker.set(deviceId);
+      await this.setAudioOutput(deviceId);
+    }
+  }
+
+  async updateStream() {
+    this.stopCamera();
+
+    const videoConstraints: MediaTrackConstraints = this.selectedCamera() !== 'default'
+      ? { deviceId: { exact: this.selectedCamera() } }
+      : {};
+
+    const audioConstraints: MediaTrackConstraints = this.selectedMic() !== 'default'
+      ? { deviceId: { exact: this.selectedMic() } }
+      : {};
+
+    try {
+      this.stream = await navigator.mediaDevices.getUserMedia({
+        video: { ...videoConstraints },
+        audio: { ...audioConstraints }
+      });
+
+      if (this.videoElement && this.videoElement.nativeElement) {
+        this.videoElement.nativeElement.srcObject = this.stream;
+        this.videoElement.nativeElement.muted = true;
+        // Re-apply audio output if needed
+        this.setAudioOutput(this.selectedSpeaker());
+      }
+
+      this.cameraStatus.set('success');
+
+      // If we were running checks, we might want to restart them or just reset
+      if (this.testState() === 'analyzing' || this.testState() === 'running') {
+        // potentially restart checks or just let the user know
+      }
+
+    } catch (err) {
+      console.error('Error updating stream:', err);
+      this.errorMessage.set('Could not access device. Please check permissions.');
+      this.cameraStatus.set('failure');
+    }
+  }
+
+  async setAudioOutput(deviceId: string) {
+    const video = this.videoElement?.nativeElement as any;
+    if (video && typeof video.setSinkId === 'function') {
+      try {
+        await video.setSinkId(deviceId === 'default' ? '' : deviceId);
+      } catch (error) {
+        console.error('Error setting audio output:', error);
+      }
     }
   }
 
@@ -193,7 +263,6 @@ export class SystemChecks implements OnInit, OnDestroy {
         scriptProcessor.connect(audioContext.destination);
 
         let soundDetected = false;
-        const startTime = Date.now();
 
         scriptProcessor.onaudioprocess = () => {
           const array = new Uint8Array(analyser.frequencyBinCount);
@@ -210,17 +279,21 @@ export class SystemChecks implements OnInit, OnDestroy {
           }
         };
 
-        setTimeout(() => {
+        const timeout = setTimeout(() => {
+          cleanup();
+          resolve(soundDetected);
+        }, 3000);
+
+        this.testTimeouts.push(timeout);
+
+        const cleanup = () => {
           scriptProcessor.disconnect();
           analyser.disconnect();
           microphone.disconnect();
-
           if (audioContext.state !== 'closed') {
             audioContext.close();
           }
-
-          resolve(soundDetected);
-        }, 3000);
+        };
 
       } catch (e) {
         console.error('Error checking audio:', e);
@@ -272,7 +345,7 @@ export class SystemChecks implements OnInit, OnDestroy {
     }
 
     this.testState.set('idle');
-    this.cameraStatus.set('pending');
+    this.cameraStatus.set('success'); // Assume success if we have stream
     this.micStatus.set('pending');
     this.networkStatus.set('pending');
     this.isAcknowledged.set(false);
@@ -283,8 +356,17 @@ export class SystemChecks implements OnInit, OnDestroy {
     this.testTimeouts = [];
   }
 
+  private interviewService = inject(InterviewService);
+
+  // ... (rest of class)
+
   joinMeeting() {
     if (this.testState() === 'completed' && this.isAcknowledged()) {
+      // Persist selection to service
+      this.interviewService.selectedMicId.set(this.selectedMic());
+      this.interviewService.selectedCameraId.set(this.selectedCamera());
+      this.interviewService.selectedSpeakerId.set(this.selectedSpeaker());
+
       this.router.navigate(['/ono-meet']);
     }
   }
