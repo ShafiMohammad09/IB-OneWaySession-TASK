@@ -1,4 +1,5 @@
 const path = require('path');
+const fs = require('fs');
 require('dotenv').config({ path: path.resolve(__dirname, '.env') });
 const express = require('express');
 const multer = require('multer');
@@ -8,6 +9,7 @@ const cors = require('cors');
 const app = express();
 const port = 3000;
 
+const SUBMISSIONS_FILE = path.join(__dirname, 'submissions.json');
 
 app.use(cors());
 
@@ -47,10 +49,31 @@ app.post('/upload', upload.single('video'), async (req, res) => {
 
         await s3Client.send(command);
 
-        // Construct Public URL
+
         const publicUrl = `https://${process.env.DO_SPACES_BUCKET}.${process.env.DO_SPACES_REGION}.digitaloceanspaces.com/${fileName}`;
 
         console.log('Upload successful:', publicUrl);
+
+
+        const submission = {
+            url: publicUrl,
+            timestamp: new Date().toISOString(),
+            ...req.body
+        };
+
+        let submissions = [];
+        if (fs.existsSync(SUBMISSIONS_FILE)) {
+            try {
+                const data = fs.readFileSync(SUBMISSIONS_FILE, 'utf8');
+                submissions = JSON.parse(data);
+            } catch (err) {
+                console.error('Error reading submissions file:', err);
+            }
+        }
+
+        submissions.push(submission);
+        fs.writeFileSync(SUBMISSIONS_FILE, JSON.stringify(submissions, null, 2));
+        console.log('Submission saved to local JSON');
 
         res.status(200).json({
             message: 'Upload successful',
