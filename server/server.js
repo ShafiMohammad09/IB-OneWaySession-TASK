@@ -35,7 +35,7 @@ app.post('/upload', upload.single('video'), async (req, res) => {
             return res.status(400).send('No file uploaded.');
         }
 
-        console.log('Starting upload for:', req.file.originalname, 'Size:', req.file.size);
+        console.log('starting upload for:', req.file.originalname, 'Size:', req.file.size);
 
         const fileName = `recordings/${Date.now()}-${req.file.originalname}`;
 

@@ -1,10 +1,11 @@
 import { Component, ViewChild, ElementRef, AfterViewInit, OnDestroy, inject, effect, NgZone } from '@angular/core';
 import { InterviewService } from '../../../services/interview.service';
+import { PermissionModalComponent } from '../../../components/permission-modal/permission-modal.component';
 
 @Component({
     selector: 'app-video-recorder',
     standalone: true,
-    imports: [],
+    imports: [PermissionModalComponent],
     templateUrl: './video-recorder.component.html',
     styles: ``
 })
@@ -19,6 +20,7 @@ export class VideoRecorderComponent implements AfterViewInit, OnDestroy {
 
     showPlayOverlay = false;
     showControls = false;
+    permissionDenied = false;
 
     constructor() {
         effect(() => {
@@ -36,11 +38,8 @@ export class VideoRecorderComponent implements AfterViewInit, OnDestroy {
             const camId = this.interviewService.selectedCameraId();
             const micId = this.interviewService.selectedMicId();
 
-            // Only update stream if we are not recording/reviewing, or if we want to allow hot-swap (which might be tricky)
-            // But usually control bar disables changes during recording.
+
             if (this.interviewService.recordingState() === 'idle') {
-                // Use untracked? No, we want to track camId/micId.
-                // We need to defer this to ensure it doesn't run too often? Signals handle that.
                 this.updateStream();
             }
         });
@@ -84,9 +83,13 @@ export class VideoRecorderComponent implements AfterViewInit, OnDestroy {
                 video: videoConstraints,
                 audio: audioConstraints
             });
+            this.permissionDenied = false;
             this.resetToCamera();
-        } catch (error) {
+        } catch (error: any) {
             console.error('Error updating stream:', error);
+            if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError' || error.message?.includes('permission')) {
+                this.permissionDenied = true;
+            }
         }
     }
 

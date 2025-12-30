@@ -6,7 +6,7 @@
             class="relative w-full h-full rounded-lg border border-white/20 overflow-hidden bg-gradient-to-br from-gray-700 to-gray-800 shadow-2xl">
             <video #videoElement id="participant" class="w-full h-full object-cover" muted playsinline></video>
 
-            
+
             @if (showPlayOverlay) {
             <div class="absolute inset-0 flex items-center justify-center bg-black/40 z-20 transition-opacity hover:bg-black/50 cursor-pointer"
                 (click)="playVideo()">
@@ -19,7 +19,7 @@
             </div>
             }
 
-             
+
             <div class="absolute bottom-4 left-0 right-0 px-4 flex justify-center sm:hidden z-30">
                 @switch (interviewService.recordingState()) {
                 @case ('idle') {
@@ -75,3 +75,5 @@
         </div>
     </div>
 </div>
+
+<app-permission-modal [visible]="permissionDenied"></app-permission-modal>

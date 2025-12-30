@@ -171,14 +171,14 @@
                         <div class="space-y-1.5">
                             <label class="text-xs text-gray-400 font-medium ml-1">Enhancements</label>
                             <div class="flex gap-1.5 h-[46px]">
-                                <button (click)="blurEnabled.set(!blurEnabled())" [class.bg-[#2A2D32]]="!blurEnabled()"
+                                <button (click)="toggleBlur()" [class.bg-[#2A2D32]]="!blurEnabled()"
                                     [class.bg-[#3D4045]]="blurEnabled()"
                                     class="flex-1 flex items-center justify-center gap-2 px-3 rounded-lg text-sm font-medium transition-all border border-white/5 hover:bg-[#32363C] text-gray-300 h-full">
                                     <img src="blur.svg" alt="">
                                     Background Blur
                                 </button>
 
-                                <button (click)="noiseCancellationEnabled.set(!noiseCancellationEnabled())"
+                                <button (click)="toggleNoiseCancellation()"
                                     [class.bg-[#2A2D32]]="!noiseCancellationEnabled()"
                                     [class.bg-[#3D4045]]="noiseCancellationEnabled()"
                                     class="flex-1 flex items-center justify-center gap-2 px-3 rounded-lg text-sm font-medium transition-all border border-white/5 hover:bg-[#32363C] text-gray-300 h-full">
@@ -187,6 +187,7 @@
                                 </button>
                             </div>
                         </div>
+                        <canvas #canvasElement style="display: none;"></canvas>
 
 
 
@@ -439,3 +440,6 @@
         </div>
     </div>
 </div>
+
+<!-- Permission Error Modal -->
+<app-permission-modal [visible]="permissionDenied()"></app-permission-modal>

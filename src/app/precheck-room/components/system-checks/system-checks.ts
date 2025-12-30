@@ -8,9 +8,11 @@ import { InterviewService } from '../../../services/interview.service';
 type CheckStatus = 'pending' | 'checking' | 'success' | 'failure';
 type TestState = 'idle' | 'running' | 'analyzing' | 'completed';
 
+import { PermissionModalComponent } from '../../../components/permission-modal/permission-modal.component';
+
 @Component({
   selector: 'app-system-checks',
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, PermissionModalComponent],
   templateUrl: './system-checks.html',
   styleUrl: './system-checks.css'
 })
@@ -18,7 +20,11 @@ export class SystemChecks implements OnInit, OnDestroy {
   private router = inject(Router);
 
   @ViewChild('videoElement') videoElement!: ElementRef<HTMLVideoElement>;
-  stream: MediaStream | null = null;
+  @ViewChild('canvasElement') canvasElement!: ElementRef<HTMLCanvasElement>;
+
+  stream: MediaStream | null = null; // The stream used for display and recording (could be raw or processed)
+  sourceStream: MediaStream | null = null; // The raw camera stream
+
   errorMessage = signal<string | null>(null);
 
   testState = signal<TestState>('idle');
@@ -52,7 +58,15 @@ export class SystemChecks implements OnInit, OnDestroy {
 
   private testTimeouts: any[] = [];
 
-  ngOnInit() {
+  // MediaPipe
+  private selfieSegmentation: any;
+  private animationFrameId: number | null = null;
+  private isProcessing = false;
+
+  permissionDenied = signal(false);
+
+  async ngOnInit() {
+    await this.initSelfieSegmentation();
     this.initCamera();
   }
 
@@ -62,23 +76,39 @@ export class SystemChecks implements OnInit, OnDestroy {
     if (this.recordedBlobUrl()) {
       URL.revokeObjectURL(this.recordedBlobUrl()!);
     }
+    if (this.selfieSegmentation) {
+      this.selfieSegmentation.close();
+    }
+    if (this.animationFrameId) {
+      cancelAnimationFrame(this.animationFrameId);
+    }
+  }
+
+  async initSelfieSegmentation() {
+    const { SelfieSegmentation } = await import('@mediapipe/selfie_segmentation');
+    this.selfieSegmentation = new SelfieSegmentation({
+      locateFile: (file) => {
+        return `https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/${file}`;
+      },
+    });
+
+    this.selfieSegmentation.setOptions({
+      modelSelection: 1, // 0: General, 1: Landscape (lighter)
+    });
+
+    this.selfieSegmentation.onResults(this.onResults.bind(this));
   }
 
   async initCamera() {
+    this.permissionDenied.set(false);
     try {
-      this.stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-      if (this.videoElement && this.videoElement.nativeElement) {
-        this.videoElement.nativeElement.srcObject = this.stream;
-        this.videoElement.nativeElement.muted = true;
-      }
-      this.cameraStatus.set('success');
-      await this.getDevices();
+      await this.updateStream();
       navigator.mediaDevices.addEventListener('devicechange', () => this.getDevices());
-    } catch (err) {
-      console.error('Error accessing camera:', err);
-      this.errorMessage.set('Could not access camera. Please allow permissions.');
-      this.cameraStatus.set('failure');
       await this.getDevices();
+    } catch (err: any) {
+      if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+        this.permissionDenied.set(true);
+      }
     }
   }
 
@@ -119,41 +149,153 @@ export class SystemChecks implements OnInit, OnDestroy {
   }
 
   async updateStream() {
-    this.stopCamera();
+    // Don't fully stop camera, just get new source
+    if (this.sourceStream) {
+      this.sourceStream.getTracks().forEach(t => t.stop());
+    }
 
     const videoConstraints: MediaTrackConstraints = this.selectedCamera() !== 'default'
       ? { deviceId: { exact: this.selectedCamera() } }
       : {};
 
-    const audioConstraints: MediaTrackConstraints = this.selectedMic() !== 'default'
-      ? { deviceId: { exact: this.selectedMic() } }
-      : {};
+    const audioConstraints: MediaTrackConstraints = {
+      deviceId: this.selectedMic() !== 'default' ? { exact: this.selectedMic() } : undefined,
+      noiseSuppression: this.noiseCancellationEnabled(),
+      echoCancellation: this.noiseCancellationEnabled(),
+    };
 
     try {
-      this.stream = await navigator.mediaDevices.getUserMedia({
-        video: { ...videoConstraints },
+      this.sourceStream = await navigator.mediaDevices.getUserMedia({
+        video: { ...videoConstraints, width: { ideal: 1280 }, height: { ideal: 720 } },
         audio: { ...audioConstraints }
       });
 
-      if (this.videoElement && this.videoElement.nativeElement) {
-        this.videoElement.nativeElement.srcObject = this.stream;
-        this.videoElement.nativeElement.muted = true;
-        // Re-apply audio output if needed
-        this.setAudioOutput(this.selectedSpeaker());
-      }
-
       this.cameraStatus.set('success');
 
-      // If we were running checks, we might want to restart them or just reset
-      if (this.testState() === 'analyzing' || this.testState() === 'running') {
-        // potentially restart checks or just let the user know
-      }
+      this.updateActiveStream();
 
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error updating stream:', err);
+      if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError' || err.message?.includes('permission')) {
+        this.permissionDenied.set(true);
+      }
       this.errorMessage.set('Could not access device. Please check permissions.');
       this.cameraStatus.set('failure');
     }
+  }
+
+  updateActiveStream() {
+    if (!this.sourceStream) return;
+
+    if (this.blurEnabled()) {
+      this.startProcessing();
+    } else {
+      this.stopProcessing();
+      this.stream = this.sourceStream;
+      this.attachStreamToVideo();
+    }
+  }
+
+  attachStreamToVideo() {
+    if (this.videoElement && this.videoElement.nativeElement && this.stream) {
+      this.videoElement.nativeElement.srcObject = this.stream;
+      this.videoElement.nativeElement.muted = true;
+      this.setAudioOutput(this.selectedSpeaker());
+    }
+  }
+
+  async toggleBlur() {
+    this.blurEnabled.update(v => !v);
+    this.updateActiveStream();
+  }
+
+  async toggleNoiseCancellation() {
+    this.noiseCancellationEnabled.update(v => !v);
+    // Need to re-acquire stream to apply audio constraints reliably
+    await this.updateStream();
+  }
+
+  // MediaPipe Logic
+  startProcessing() {
+    if (this.isProcessing) return;
+    this.isProcessing = true;
+
+    const canvas = this.canvasElement.nativeElement;
+    const stream = canvas.captureStream(30);
+
+    // Combine processed video with original audio
+    if (this.sourceStream) {
+      const audioTracks = this.sourceStream.getAudioTracks();
+      if (audioTracks.length > 0) {
+        stream.addTrack(audioTracks[0]);
+      }
+    }
+
+    this.stream = stream;
+    this.attachStreamToVideo();
+    this.processVideo();
+  }
+
+  stopProcessing() {
+    this.isProcessing = false;
+    if (this.animationFrameId) {
+      cancelAnimationFrame(this.animationFrameId);
+      this.animationFrameId = null;
+    }
+  }
+
+  async processVideo() {
+    if (!this.isProcessing || !this.sourceStream) return;
+
+
+
+    const inputVideo = document.createElement('video');
+    inputVideo.srcObject = this.sourceStream;
+    inputVideo.muted = true;
+    await inputVideo.play();
+
+    const loop = async () => {
+      if (!this.isProcessing) {
+        inputVideo.pause();
+        inputVideo.srcObject = null;
+        return;
+      }
+
+      await this.selfieSegmentation.send({ image: inputVideo });
+
+      this.animationFrameId = requestAnimationFrame(loop);
+    };
+
+    loop();
+  }
+
+  onResults(results: any) {
+    if (!this.canvasElement) return;
+    const canvas = this.canvasElement.nativeElement;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    canvas.width = results.image.width;
+    canvas.height = results.image.height;
+
+    ctx.save();
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // 1. Draw the sharp person first
+    // We will mask this to only keep the person
+    ctx.filter = 'none';
+    ctx.drawImage(results.image, 0, 0, canvas.width, canvas.height);
+
+    // 2. Keep only the person (where mask is white)
+    ctx.globalCompositeOperation = 'destination-in';
+    ctx.drawImage(results.segmentationMask, 0, 0, canvas.width, canvas.height);
+
+    // 3. Draw the blurred background behind the sharp person
+    ctx.globalCompositeOperation = 'destination-over';
+    ctx.filter = 'blur(10px)';
+    ctx.drawImage(results.image, 0, 0, canvas.width, canvas.height);
+
+    ctx.restore();
   }
 
   async setAudioOutput(deviceId: string) {
@@ -168,6 +310,11 @@ export class SystemChecks implements OnInit, OnDestroy {
   }
 
   stopCamera() {
+    this.stopProcessing();
+    if (this.sourceStream) {
+      this.sourceStream.getTracks().forEach(track => track.stop());
+      this.sourceStream = null;
+    }
     if (this.stream) {
       this.stream.getTracks().forEach(track => track.stop());
       this.stream = null;
@@ -219,7 +366,10 @@ export class SystemChecks implements OnInit, OnDestroy {
   async runChecks() {
     this.clearTimeouts();
 
-    if (this.stream && this.stream.getVideoTracks().length > 0 && this.stream.getVideoTracks()[0].readyState === 'live') {
+    // Check processing stream or source stream
+    const activeStream = this.stream || this.sourceStream;
+
+    if (activeStream && activeStream.getVideoTracks().length > 0 && activeStream.getVideoTracks()[0].readyState === 'live') {
       this.cameraStatus.set('success');
     } else {
       this.cameraStatus.set('failure');
@@ -244,7 +394,11 @@ export class SystemChecks implements OnInit, OnDestroy {
 
   checkAudioLevel(): Promise<boolean> {
     return new Promise(resolve => {
-      if (!this.stream) {
+      // Always use source stream for audio checks to avoid any canvas stream issues, 
+      // though processed stream should have audio track added.
+      const streamToCheck = this.stream;
+
+      if (!streamToCheck) {
         resolve(false);
         return;
       }
@@ -252,7 +406,7 @@ export class SystemChecks implements OnInit, OnDestroy {
       try {
         const audioContext = new AudioContext();
         const analyser = audioContext.createAnalyser();
-        const microphone = audioContext.createMediaStreamSource(this.stream);
+        const microphone = audioContext.createMediaStreamSource(streamToCheck);
         const scriptProcessor = audioContext.createScriptProcessor(2048, 1, 1);
 
         analyser.smoothingTimeConstant = 0.8;
@@ -345,8 +499,7 @@ export class SystemChecks implements OnInit, OnDestroy {
     }
 
     this.testState.set('idle');
-    this.cameraStatus.set('success'); // Assume success if we have stream
-    this.micStatus.set('pending');
+    this.cameraStatus.set('success');
     this.networkStatus.set('pending');
     this.isAcknowledged.set(false);
   }
@@ -357,8 +510,6 @@ export class SystemChecks implements OnInit, OnDestroy {
   }
 
   private interviewService = inject(InterviewService);
-
-  // ... (rest of class)
 
   joinMeeting() {
     if (this.testState() === 'completed' && this.isAcknowledged()) {
