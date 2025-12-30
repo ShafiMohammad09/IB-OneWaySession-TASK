@@ -9,7 +9,7 @@ import { CommonModule } from '@angular/common';
     <div *ngIf="visible" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
         <div class="bg-[#1E1E1E] rounded-xl shadow-2xl w-full max-w-[600px] border border-white/10 overflow-hidden">
             
-            <!-- Header -->
+           
             <div class="p-6 pb-2">
                 <h2 class="text-2xl font-semibold text-white mb-2">Camera & Microphone Access Required</h2>
                 <p class="text-gray-400 text-sm">To join the interview, you need to grant access to your camera and microphone.</p>
@@ -17,7 +17,7 @@ import { CommonModule } from '@angular/common';
 
             <div class="p-6 space-y-4">
                 
-                <!-- Denied State Box -->
+                 
                 <div class="bg-[#272B30] rounded-lg p-5 border border-white/5">
                     <div class="flex justify-between items-start mb-4">
                         <h3 class="text-white font-medium text-lg">Permission Denied</h3>
@@ -47,7 +47,7 @@ import { CommonModule } from '@angular/common';
                     </div>
                 </div>
 
-                <!-- Instructions Box -->
+                 
                 <div class="bg-[#272B30] rounded-lg p-5 border border-white/5">
                     <h3 class="text-white font-medium text-lg mb-4">How to Allow Permissions</h3>
                     

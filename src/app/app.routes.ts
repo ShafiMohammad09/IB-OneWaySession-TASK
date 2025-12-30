@@ -1,11 +1,10 @@
 import { Routes } from '@angular/router';
-import { Lobby } from './precheck-room/components/lobby/lobby';
-import { SystemChecks } from './precheck-room/components/system-checks/system-checks';
+import { PrecheckRoom } from './precheck-room/precheck-room';
 import { MeetingRoom } from './meeting-room/meeting-room';
 
 export const routes: Routes = [
     { path: '', redirectTo: 'lobby', pathMatch: 'full' },
-    { path: 'lobby', component: Lobby },
-    { path: 'precheck', component: SystemChecks },
+    { path: 'lobby', component: PrecheckRoom },
+    { path: 'precheck', redirectTo: 'lobby' },
     { path: 'ono-meet', component: MeetingRoom }
 ];

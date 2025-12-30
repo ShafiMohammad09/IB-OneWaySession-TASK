@@ -1,12 +1,73 @@
 <div
     class="h-screen flex flex-col bg-[#272B30] relative overflow-hidden font-sans selection:bg-[#6834FF] selection:text-white p-4">
 
-
     @if (isSessionComplete) {
     <div class="flex flex-col gap-6 ">
-        <app-navbar class="relative z-50 w-full"></app-navbar>
+        <!-- Navbar -->
+        <nav class="relative z-50 w-full flex justify-between items-center bg-[#1E1E1E] rounded-md px-4 py-2 h-16">
+            <div class="flex items-center gap-3">
+                <img src="/ib-logo.png" alt="Interview Buddy" class="h-8 w-auto">
+            </div>
+            <div class="flex items-center gap-2">
+                <img src="/headset-f.png" alt="Support" class="w-5 h-5">
+            </div>
+        </nav>
+
+
+
+
         <div class="animate-fade-in">
-            <app-feedback></app-feedback>
+            <!-- Feedback -->
+            <div
+                class="flex flex-col bg-[#1E1E1E]  items-center justify-center h-full min-h-[400px] animate-fade-in text-white p-6">
+                <div class="w-full max-w-2xl rounded-xl p-8 flex flex-col items-center gap-6">
+
+                    <h2 class="text-2xl font-semibold">Session Complete</h2>
+                    <p class="text-gray-400">How did your session feel today?</p>
+
+                    <div class="flex gap-2 text-3xl">
+                        @for (star of [1, 2, 3, 4, 5]; track star) {
+                        <button (click)="setRating(star)"
+                            class="focus:outline-none transition-transform hover:scale-110">
+                            <span [class.text-yellow-400]="star <= rating" [class.text-gray-600]="star > rating">
+                                {{ star <= rating ? '★' : '☆' }} </span>
+                        </button>
+                        }
+                    </div>
+
+                    <div class="flex flex-col items-center gap-3 w-full">
+                        <p class="text-sm text-gray-400">How can we make your experience better?</p>
+                        <div class="flex flex-wrap justify-center gap-2 max-w-[500px]">
+                            @for (option of improvementOptions; track option) {
+                            <button (click)="toggleImprovement(option)"
+                                class="px-3 py-1 rounded-full text-xs transition-all duration-200 border"
+                                [class.bg-[#FFE4D3]]="improvements.has(option)"
+                                [class.text-[#FF8534]]="improvements.has(option)"
+                                [class.border-[#FF8534]]="improvements.has(option)"
+                                [class.bg-[#374151]]="!improvements.has(option)"
+                                [class.text-gray-300]="!improvements.has(option)"
+                                [class.border-transparent]="!improvements.has(option)"
+                                [class.hover:bg-[#4B5563]]="!improvements.has(option)">
+                                {{ option }}
+                            </button>
+                            }
+                        </div>
+                    </div>
+
+                    <div class="w-full flex flex-col gap-2">
+                        <label class="text-xs text-gray-400">Suggestions to improve</label>
+                        <textarea
+                            class="w-full h-24 bg-[#1F2937] rounded-lg border border-gray-700 p-3 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-[#6834FF] transition-colors resize-none"
+                            placeholder="Your feedback is much appreciated..."></textarea>
+                    </div>
+
+                    <button
+                        class="px-8 py-2.5 bg-[#6834FF] hover:bg-[#5829D6] rounded-md text-white font-medium transition-colors shadow-lg shadow-purple-600/20">
+                        Submit & Close
+                    </button>
+
+                </div>
+            </div>
         </div>
     </div>
     }
@@ -15,28 +76,379 @@
 
     <div class="flex-1 w-full  mx-auto flex flex-col min-h-0 relative">
 
-
-        <app-navbar class="relative z-50 w-full"></app-navbar>
+        <!-- Navbar -->
+        <nav class="relative z-50 w-full flex justify-between items-center bg-[#1E1E1E] rounded-md px-4 py-2 h-16">
+            <div class="flex items-center gap-3">
+                <img src="/ib-logo.png" alt="Interview Buddy" class="h-8 w-auto">
+            </div>
+            <div class="flex items-center gap-2">
+                <img src="/headset-f.png" alt="Support" class="w-5 h-5">
+            </div>
+        </nav>
 
         <div class="w-full mt-6">
-            <app-question-section></app-question-section>
+            <!-- Question -->
+            <div class="flex items-center gap-4 bg-[#1E2024] rounded-md py-12 sm:px-6">
+                <img src="Stars.png" alt="star">
+                <p class="text-white text-sm sm:text-base leading-6 flex-1 ">
+                    {{ question.text }}
+                </p>
+            </div>
         </div>
 
 
         <div class="flex-1 min-h-0 flex flex-col items-center justify-center w-full my-6">
-            <app-video-recorder class="h-full w-full max-w-2xl"></app-video-recorder>
+            <!-- Video-->
+            <div class="h-full w-full max-w-2xl">
+                <div
+                    class="flex-1 flex items-center justify-center bg-transparent rounded-md overflow-hidden relative min-h-0 w-full h-full">
+                    <div
+                        class="relative w-full h-auto max-h-full max-w-[320px] sm:max-w-[455px] aspect-[320/485] sm:aspect-[455/340] flex items-center justify-center rounded-md transition-all duration-300">
+                        <div
+                            class="relative w-full h-full rounded-lg border border-white/20 overflow-hidden bg-gradient-to-br from-gray-700 to-gray-800 shadow-2xl">
+                            <video #videoElement id="participant" class="w-full h-full object-cover scale-x-[-1]" muted
+                                playsinline></video>
+                            <canvas #canvasElement style="display: none;"></canvas>
+
+                            @if (showPlayOverlay) {
+                            <div class="absolute inset-0 flex items-center justify-center bg-black/40 z-20 transition-opacity hover:bg-black/50 cursor-pointer"
+                                (click)="playVideo()">
+                                <div
+                                    class="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center transition-transform hover:scale-110">
+                                    <svg class="w-6 h-6 sm:w-8 sm:h-8 text-white ml-1" fill="currentColor"
+                                        viewBox="0 0 24 24">
+                                        <path d="M8 5v14l11-7z" />
+                                    </svg>
+                                </div>
+                            </div>
+                            }
+
+                            <div class="absolute bottom-4 left-0 right-0 px-4 flex justify-center sm:hidden z-30">
+                                @switch (state) {
+                                @case ('idle') {
+                                <button (click)="interviewService.startRecording()"
+                                    class="px-5 py-2 rounded-full bg-[#F0EBFF] text-[#6834FF] text-sm font-medium shadow-lg hover:bg-[#E7DFFF] transition-colors w-full max-w-[180px] text-center">
+                                    Start recording
+                                </button>
+                                }
+                                @case ('recording') {
+                                <button (click)="interviewService.stopRecording()"
+                                    class="px-4 py-2 rounded-full bg-[#FFE4E4] text-[#FF4B4B] text-sm font-medium shadow-lg flex items-center gap-2">
+                                    <div class="w-2.5 h-2.5 rounded-full border-[2px] border-[#FF4B4B]"></div>
+                                    {{ interviewService.timer$ | async }} / 04:00
+                                </button>
+                                }
+                                @case ('review') {
+                                <div class="flex items-center gap-2 w-full">
+                                    <button (click)="interviewService.resetRecording()"
+                                        [disabled]="interviewService.isMaxAttemptsReached"
+                                        class="flex-1 px-3 py-2 rounded-lg bg-[#F0EBFF] text-[#6834FF] text-xs font-medium shadow-lg text-center disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1.5">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15">
+                                            </path>
+                                        </svg> Re-attempt
+                                    </button>
+                                    <button (click)="interviewService.submitAnswer()"
+                                        class="flex-1 px-3 py-2 rounded-lg bg-[#6834FF] text-white text-xs font-medium shadow-lg text-center flex items-center justify-center gap-1.5">
+                                        Submit & next <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M9 5l7 7-7 7">
+                                            </path>
+                                        </svg>
+                                    </button>
+                                </div>
+                                }
+                                @case ('loading') {
+                                <div class="w-full bg-black/60 backdrop-blur-sm rounded-lg p-3 mb-2">
+                                    <div class="flex flex-col items-center gap-2 text-center">
+                                        <div
+                                            class="w-5 h-5 border-2 border-[#6834FF] border-t-transparent rounded-full animate-spin">
+                                        </div>
+                                        <p class="text-white font-medium text-xs">{{ interviewService.loadingMessage$ |
+                                            async
+                                            }}
+                                        </p>
+                                        <div class="w-full bg-gray-700/50 rounded-full h-1 overflow-hidden mt-0.5">
+                                            <div class="bg-[#6834FF] h-1 rounded-full transition-all duration-300"
+                                                [style.width.%]="interviewService.progress$ | async">
+                                            </div>
+                                        </div>
+                                        <span class="text-white/60 text-[10px]">{{ interviewService.progress$ | async
+                                            }}%</span>
+                                    </div>
+                                </div>
+                                }
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <app-permission-modal [visible]="permissionDenied"></app-permission-modal>
+            </div>
         </div>
 
 
-        <app-control-bar class="relative z-50 mt-auto w-full"></app-control-bar>
+        <!-- Control Bar -->
+        <div class="relative z-0 mt-auto w-full">
+            <div
+                class="flex flex-wrap sm:flex-nowrap items-center justify-between sm:justify-start py-4 px-3 gap-3 sm:gap-4 bg-[#1E2024] border-t border-white/10 relative z-20">
+                <div class="flex items-center gap-3">
+
+
+                    <div class="relative group">
+                        <div
+                            class="w-16 h-10 rounded-full border border-[#6B727E] flex items-center bg-[#272B30] relative z-0">
+                            <div class="w-10 h-10 rounded-full flex items-center justify-center relative">
+                                <div
+                                    class="w-12 h-9 rounded-full bg-black/40 flex items-center justify-center shadow-sm">
+                                    <img src="Mic.svg" alt="Mic" class="w-10 h-10 ">
+                                </div>
+                            </div>
+                            <button (click)="toggleAudioSettings()" [disabled]="state === 'recording'"
+                                [class.opacity-50]="state === 'recording'"
+                                [class.cursor-not-allowed]="state === 'recording'"
+                                class="absolute right-1 top-1/2 -translate-y-1/2 w-4 h-4 flex items-center justify-center cursor-pointer hover:bg-white/10 rounded-full transition-colors z-10">
+                                <img src="more-vertical-circle-01.svg" alt="More Options" class="w-4 h-4">
+                            </button>
+                        </div>
+
+
+                        @if (showAudioSettings) {
+                        <div
+                            class="absolute bottom-[130%] left-0 z-50 w-[280px] bg-[#1E2024] border border-gray-700 rounded-xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
+                            <div class="flex items-center justify-between p-3 border-b border-gray-700">
+                                <h3 class="text-white font-medium text-sm">Audio settings</h3>
+                                <button (click)="showAudioSettings = false"
+                                    class="text-gray-400 hover:text-white transition-colors">
+                                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2">
+                                        <path d="M18 6L6 18M6 6l12 12" stroke-linecap="round" stroke-linejoin="round" />
+                                    </svg>
+                                </button>
+                            </div>
+                            <div class="p-4 space-y-4">
+                                <div class="space-y-1.5">
+                                    <label class="text-gray-300 text-xs">Select audio device</label>
+                                    <div class="relative">
+                                        <select [(ngModel)]="selectedAudioDevice" (ngModelChange)="onMicChange($event)"
+                                            class="w-full bg-[#272B30] text-white border border-gray-600 rounded-lg px-2 py-2 text-xs focus:outline-none focus:border-[#6834FF] appearance-none cursor-pointer">
+                                            @for (device of audioDevices; track device.deviceId) {
+                                            <option [value]="device.deviceId">{{ device.label || 'Microphone ' + ($index
+                                                + 1) }}
+                                            </option>
+                                            }
+                                            @if (audioDevices.length === 0) {
+                                            <option value="">Default Microphone</option>
+                                            }
+                                        </select>
+                                        <div
+                                            class="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
+                                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M19 9l-7 7-7-7">
+                                                </path>
+                                            </svg>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="space-y-1.5">
+                                    <label class="text-gray-300 text-xs">Noise cancellation</label>
+                                    <button (click)="toggleNoiseCancellation()" class="flex items-center gap-2 group">
+                                        <div class="w-9 h-5 rounded-full transition-colors relative"
+                                            [class.bg-[#6834FF]]="noiseCancellation"
+                                            [class.bg-gray-500]="!noiseCancellation">
+                                            <div class="absolute top-0.5 left-0.5 bg-white w-4 h-4 rounded-full transition-transform"
+                                                [class.translate-x-4]="noiseCancellation"></div>
+                                        </div>
+                                        <span class="text-xs font-medium transition-colors"
+                                            [class.text-white]="noiseCancellation"
+                                            [class.text-gray-400]="!noiseCancellation">
+                                            {{ noiseCancellation ? 'On' : 'Off' }}
+                                        </span>
+                                    </button>
+                                </div>
+                                <div
+                                    class="bg-blue-500/10 border border-blue-500/20 rounded-md p-2 flex items-start gap-2">
+                                    <svg class="w-4 h-4 text-blue-400 flex-shrink-0 mt-0.5" viewBox="0 0 24 24"
+                                        fill="none" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                    <p class="text-blue-100/90 text-[10px] leading-tight">
+                                        Use built-in cancellation on Mac/iOS.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        }
+
+                        <div class="hidden group-hover:block absolute bottom-full left-1/2 -translate-x-1/2 mb-2 z-50">
+                            <div
+                                class="bg-[#F0EBFF] text-[#6834FF] text-xs font-medium px-3 py-1.5 rounded-md shadow-lg whitespace-nowrap relative">
+                                Mic cannot be muted
+                                <div
+                                    class="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[6px] border-t-[#F0EBFF]">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+
+
+                    <div class="relative group">
+                        <div class="w-16 h-10 rounded-full border border-[#6B727E] flex items-center bg-[#272B30]">
+                            <div
+                                class="w-10 h-10 rounded-full flex items-center justify-center relative cursor-not-allowed">
+                                <div
+                                    class="w-12 h-9 rounded-full bg-black/40 flex items-center justify-center shadow-sm">
+                                    <img src="Camera.svg" alt="Camera" class="w-10 h-10">
+                                </div>
+                            </div>
+                            <button (click)="toggleVideoSettings()" [disabled]="state === 'recording'"
+                                [class.opacity-50]="state === 'recording'"
+                                [class.cursor-not-allowed]="state === 'recording'"
+                                class="absolute right-1 top-1/2 -translate-y-1/2 w-4 h-4 flex items-center justify-center cursor-pointer hover:bg-white/10 rounded-full transition-colors">
+                                <img src="more-vertical-circle-01.svg" alt="More Options" class="w-4 h-4">
+                            </button>
+                        </div>
+
+
+                        @if (showVideoSettings) {
+                        <div
+                            class="absolute bottom-[130%] left-0 z-50 w-[280px] bg-[#1E2024] border border-gray-700 rounded-xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
+                            <div class="flex items-center justify-between p-3 border-b border-gray-700">
+                                <h3 class="text-white font-medium text-sm">Video settings</h3>
+                                <button (click)="showVideoSettings = false"
+                                    class="text-gray-400 hover:text-white transition-colors">
+                                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2">
+                                        <path d="M18 6L6 18M6 6l12 12" stroke-linecap="round" stroke-linejoin="round" />
+                                    </svg>
+                                </button>
+                            </div>
+                            <div class="p-4 space-y-4">
+                                <div class="space-y-1.5">
+                                    <label class="text-gray-300 text-xs">Select video device</label>
+                                    <div class="relative">
+                                        <select [(ngModel)]="selectedVideoDevice"
+                                            (ngModelChange)="onCameraChange($event)"
+                                            class="w-full bg-[#272B30] text-white border border-gray-600 rounded-lg px-2 py-2 text-xs focus:outline-none focus:border-[#6834FF] appearance-none cursor-pointer">
+                                            @for (device of videoDevices; track device.deviceId) {
+                                            <option [value]="device.deviceId">{{ device.label || 'Camera ' + ($index +
+                                                1) }}
+                                            </option>
+                                            }
+                                            @if (videoDevices.length === 0) {
+                                            <option value="">Default Camera</option>
+                                            }
+                                        </select>
+                                        <div
+                                            class="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
+                                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M19 9l-7 7-7-7">
+                                                </path>
+                                            </svg>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="space-y-1.5">
+                                    <label class="text-gray-300 text-xs">Background blur</label>
+                                    <button (click)="toggleBackgroundBlur()" class="flex items-center gap-2 group">
+                                        <div class="w-9 h-5 rounded-full transition-colors relative"
+                                            [class.bg-[#6834FF]]="backgroundBlur" [class.bg-gray-500]="!backgroundBlur">
+                                            <div class="absolute top-0.5 left-0.5 bg-white w-4 h-4 rounded-full transition-transform"
+                                                [class.translate-x-4]="backgroundBlur"></div>
+                                        </div>
+                                        <span class="text-xs font-medium transition-colors"
+                                            [class.text-white]="backgroundBlur" [class.text-gray-400]="!backgroundBlur">
+                                            {{ backgroundBlur ? 'On' : 'Off' }}
+                                        </span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        }
+
+                        <div class="hidden group-hover:block absolute bottom-full left-1/2 -translate-x-1/2 mb-2 z-50">
+                            <div
+                                class="bg-[#F0EBFF] text-[#6834FF] text-xs font-medium px-3 py-1.5 rounded-md shadow-lg whitespace-nowrap relative">
+                                Video cannot be disabled
+                                <div
+                                    class="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[6px] border-t-[#F0EBFF]">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="hidden sm:flex flex-1 justify-center items-center gap-4">
+                    @switch (state) {
+                    @case ('idle') {
+                    <button (click)="interviewService.startRecording()"
+                        class="px-5 py-2.5 rounded-md bg-[#F0EBFF] text-[#6834FF] text-sm font-medium hover:bg-[#E7DFFF] transition-colors shadow-lg shadow-purple-500/20">
+                        Start Recording
+                    </button>
+                    }
+                    @case ('recording') {
+                    <button (click)="interviewService.stopRecording()"
+                        class="px-5 py-2.5 rounded-md bg-[#FF4B4B]/10 text-[#FF4B4B] text-sm font-medium hover:bg-[#FF4B4B]/20 transition-colors flex items-center gap-2 border border-[#FF4B4B]/20">
+                        <div class="w-2.5 h-2.5 rounded-full bg-[#FF4B4B] animate-pulse"></div>
+                        {{ interviewService.timer$ | async }} / 04:00
+                    </button>
+                    }
+                    @case ('review') {
+                    <div class="flex items-center gap-3">
+                        <button (click)="interviewService.resetRecording()"
+                            [disabled]="interviewService.isMaxAttemptsReached"
+                            [class.opacity-50]="interviewService.isMaxAttemptsReached"
+                            [class.cursor-not-allowed]="interviewService.isMaxAttemptsReached"
+                            class="px-6 bg-brand-50 py-2.5 rounded-md border border-white/20 text-white text-sm font-medium hover:bg-white/5 transition-colors">
+                            <span class="text-brand-500">Re-attempt</span>
+                        </button>
+                        <button (click)="interviewService.submitAnswer()"
+                            class="px-6 py-2.5 rounded-md bg-[#6834FF] text-white text-sm font-medium hover:bg-[#5829D6] transition-colors shadow-lg shadow-purple-600/20">
+                            Submit & Next
+                        </button>
+                    </div>
+                    }
+                    @case ('loading') {
+                    <div class="flex flex-col items-center gap-2 w-full max-w-md">
+                        <div class="flex items-center gap-2 text-[#9CA3AF] text-sm">
+                            <svg class="animate-spin h-4 w-4 text-[#6834FF]" xmlns="http://www.w3.org/2000/svg"
+                                fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
+                                    stroke-width="4">
+                                </circle>
+                                <path class="opacity-75" fill="currentColor"
+                                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                                </path>
+                            </svg>
+                            <span>{{ interviewService.loadingMessage$ | async }}</span>
+                        </div>
+                        <div class="w-full bg-gray-700/50 rounded-full h-1.5 overflow-hidden">
+                            <div class="bg-gradient-to-r from-[#6834FF] to-[#8A38F5] h-1.5 rounded-full transition-all duration-500 ease-out"
+                                [style.width.%]="interviewService.progress$ | async">
+                            </div>
+                        </div>
+                        <span class="text-xs text-[#6B727E] self-end">{{ interviewService.progress$ | async }}%</span>
+                    </div>
+                    }
+                    }
+                </div>
+
+
+                <div class="flex flex-col items-end gap-1 min-w-[100px]">
+                    <span class="text-[#AFAFAF] text-xs sm:text-sm">Attempts</span>
+                    <span class="text-white text-sm sm:text-base font-normal">
+                        {{ interviewService.attempts$ | async }}/{{ interviewService.MAX_ATTEMPTS }}
+                    </span>
+                </div>
+
+            </div>
+        </div>
     </div>
-
     }
-
-
-
-
-
-
-
 </div>
