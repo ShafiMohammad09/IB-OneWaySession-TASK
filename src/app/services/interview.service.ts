@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { BehaviorSubject, firstValueFrom } from 'rxjs';
+import { BehaviorSubject, firstValueFrom, map } from 'rxjs';
 
 export interface Question {
     id: number;
@@ -37,6 +37,13 @@ export class InterviewService {
     readonly currentQuestionIndex$ = this._currentQuestionIndex.asObservable();
     readonly recordingState$ = this._recordingState.asObservable();
     readonly timer$ = this._timer.asObservable();
+    readonly formattedTimer$ = this._timer.pipe(
+        map(t => {
+            const minutes = Math.floor(t / 60);
+            const seconds = t % 60;
+            return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        })
+    );
     readonly loadingMessage$ = this._loadingMessage.asObservable();
     readonly progress$ = this._progress.asObservable();
     readonly recordedBlob$ = this._recordedBlob.asObservable();
@@ -62,8 +69,13 @@ export class InterviewService {
     readonly MAX_ATTEMPTS = 5;
 
     private readonly UPLOAD_URL = 'http://localhost:3000/upload';
+    private readonly STORAGE_KEY = 'aura_interview_state';
 
-    constructor(private http: HttpClient) { }
+    constructor(private http: HttpClient) {
+        this.loadState();
+        this._currentQuestionIndex.subscribe(() => this.saveState());
+        this._attempts.subscribe(() => this.saveState());
+    }
 
 
 
@@ -141,6 +153,7 @@ export class InterviewService {
             this._resetState();
         } else {
             this._recordingState.next('completed');
+            this.clearState();
         }
     }
 
@@ -170,5 +183,30 @@ export class InterviewService {
 
     private delay(ms: number) {
         return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    private saveState() {
+        const state = {
+            questionIndex: this._currentQuestionIndex.value,
+            attempts: this._attempts.value
+        };
+        localStorage.setItem(this.STORAGE_KEY, JSON.stringify(state));
+    }
+
+    private loadState() {
+        const stored = localStorage.getItem(this.STORAGE_KEY);
+        if (stored) {
+            try {
+                const state = JSON.parse(stored);
+                if (typeof state.questionIndex === 'number') this._currentQuestionIndex.next(state.questionIndex);
+                if (typeof state.attempts === 'number') this._attempts.next(state.attempts);
+            } catch (e) {
+                console.error('Failed to load interview state', e);
+            }
+        }
+    }
+
+    private clearState() {
+        localStorage.removeItem(this.STORAGE_KEY);
     }
 }

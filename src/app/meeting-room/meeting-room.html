@@ -135,7 +135,7 @@
                                 <button (click)="interviewService.stopRecording()"
                                     class="px-4 py-2 rounded-full bg-[#FFE4E4] text-[#FF4B4B] text-sm font-medium shadow-lg flex items-center gap-2">
                                     <div class="w-2.5 h-2.5 rounded-full border-[2px] border-[#FF4B4B]"></div>
-                                    {{ interviewService.timer$ | async }} / 04:00
+                                    {{ interviewService.formattedTimer$ | async }} / 04:00
                                 </button>
                                 }
                                 @case ('review') {
@@ -396,7 +396,7 @@
                     <button (click)="interviewService.stopRecording()"
                         class="px-5 py-2.5 rounded-md bg-[#FF4B4B]/10 text-[#FF4B4B] text-sm font-medium hover:bg-[#FF4B4B]/20 transition-colors flex items-center gap-2 border border-[#FF4B4B]/20">
                         <div class="w-2.5 h-2.5 rounded-full bg-[#FF4B4B] animate-pulse"></div>
-                        {{ interviewService.timer$ | async }} / 04:00
+                        {{ interviewService.formattedTimer$ | async }} / 04:00
                     </button>
                     }
                     @case ('review') {
