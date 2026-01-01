@@ -2,24 +2,24 @@ import { Injectable } from '@angular/core';
 import { Apollo, gql } from 'apollo-angular';
 import { Observable, map } from 'rxjs';
 
-// Define the shape of our data
+
 export interface Question {
-    id: number;
-    text: string;
+  id: number;
+  text: string;
 }
 
 @Injectable({
-    providedIn: 'root'
+  providedIn: 'root'
 })
 export class GraphqlService {
 
-    constructor(private apollo: Apollo) { }
+  constructor(private apollo: Apollo) { }
 
-    // Query to fetch all questions
-    getQuestions(): Observable<Question[]> {
-        return this.apollo
-            .watchQuery<{ questions: Question[] }>({
-                query: gql`
+
+  getQuestions(): Observable<Question[]> {
+    return this.apollo
+      .watchQuery<{ questions: Question[] }>({
+        query: gql`
           query GetQuestions {
             questions {
               id
@@ -27,7 +27,7 @@ export class GraphqlService {
             }
           }
         `,
-            })
-            .valueChanges.pipe(map((result) => (result.data?.questions as Question[]) || []));
-    }
+      })
+      .valueChanges.pipe(map((result) => (result.data?.questions as Question[]) || []));
+  }
 }
