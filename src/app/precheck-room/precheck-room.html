@@ -50,7 +50,7 @@
         class="flex-1 bg-[#23262B] rounded-lg border border-white/5 p-6 flex flex-col animate-fade-in delay-100 min-h-0">
         <h2 class="text-lg font-medium text-white mb-4">Instructions</h2>
 
-        <div class="overflow-y-auto pr-2 custom-scrollbar flex-1">
+        <div class=" pr-2 custom-scrollbar flex-1">
             <ul class="space-y-2 text-sm text-gray-300 list-disc pl-4 marker:text-gray-500">
                 <li>Test your audio and video. Adjust the settings if necessary.</li>
                 <li>Sit in a well-lit area with your face clearly visible and no background noise.</li>
@@ -84,7 +84,7 @@
             </div>
 
             <button (click)="handleNext()" [disabled]="!isAgreed"
-                class="px-8 py-2.5 bg-white text-black font-medium rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 transition-colors w-full sm:w-auto mt-4 sm:mt-0">
+                class="px-8 py-2.5 text-brand-500 bg-brand-50 font-medium rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 transition-colors w-full sm:w-auto mt-4 sm:mt-0">
                 Next
             </button>
         </div>

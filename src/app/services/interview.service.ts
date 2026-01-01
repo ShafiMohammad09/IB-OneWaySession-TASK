@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, firstValueFrom, map } from 'rxjs';
+import { GraphqlService } from './graphql.service';
 
 export interface Question {
     id: number;
@@ -26,13 +27,7 @@ export class InterviewService {
     private _selectedMicId = new BehaviorSubject<string>('default');
     private _selectedSpeakerId = new BehaviorSubject<string>('default');
 
-    private readonly _questions = new BehaviorSubject<Question[]>([
-        { id: 1, text: "Q1) Front-end performance is critical to providing a fast, seamless user experience. Describe the strategies you use to optimize the performance of a web application. In your answer, touch on techniques related to minimizing initial load time (such as bundling and lazy loading)." },
-        { id: 2, text: "Q2) What are your greatest strengths and weaknesses?" },
-        { id: 3, text: "Q3) Front-end performance is critical to providing a fast, seamless user experience. Describe the strategies you use to optimize the performance of a web application. In your answer, touch on techniques related to minimizing initial load time (such as bundling and lazy loading), reducing render-blocking resources (like JavaScript and CSS), improving image performance, and leveraging browser caching. Additionally, discuss how you would use tools such as Chrome DevTools to identify." },
-        { id: 4, text: "Q4) Where do you see yourself in five years?" },
-        { id: 5, text: "Q5) Is there anything you would like to ask us?" }
-    ]);
+    private readonly _questions = new BehaviorSubject<Question[]>([]);
 
     readonly currentQuestionIndex$ = this._currentQuestionIndex.asObservable();
     readonly recordingState$ = this._recordingState.asObservable();
@@ -71,10 +66,19 @@ export class InterviewService {
     private readonly UPLOAD_URL = 'http://localhost:3000/upload';
     private readonly STORAGE_KEY = 'aura_interview_state';
 
-    constructor(private http: HttpClient) {
+    constructor(private http: HttpClient, private graphqlService: GraphqlService) {
+        this.loadQuestions();
         this.loadState();
         this._currentQuestionIndex.subscribe(() => this.saveState());
         this._attempts.subscribe(() => this.saveState());
+    }
+
+    private loadQuestions() {
+        this.graphqlService.getQuestions().subscribe((questions: Question[]) => {
+            if (questions && questions.length > 0) {
+                this._questions.next(questions);
+            }
+        });
     }
 
 

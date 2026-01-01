@@ -561,7 +561,7 @@ export class PrecheckRoom implements OnInit, OnDestroy {
 
   joinMeeting() {
     if (this.testState === 'completed' && this.isAcknowledged) {
-      // Use Setters logic
+      
       this.interviewService.setSelectedMicId(this.selectedMic);
       this.interviewService.setSelectedCameraId(this.selectedCamera);
       this.interviewService.setSelectedSpeakerId(this.selectedSpeaker);
